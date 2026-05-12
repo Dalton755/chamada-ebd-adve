@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Chamada EBD</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#f3f4f6;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.card{
+    width:100%;
+    max-width:500px;
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+}
+
+.logo{
+    width:120px;
+    display:block;
+    margin:0 auto 20px;
+}
+
+.titulo{
+    text-align:center;
+    font-size:28px;
+    margin-bottom:20px;
+    color:#111827;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#374151;
+}
+
+select,
+input{
+    width:100%;
+    padding:15px;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    font-size:16px;
+    outline:none;
+    transition:.2s;
+}
+
+select:focus,
+input:focus{
+    border-color:#111827;
+}
+
+#lista{
+    list-style:none;
+    margin-top:10px;
+}
+
+#lista li{
+    background:#f3f4f6;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:5px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+#lista li:hover{
+    background:#e5e7eb;
+}
+
+button{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:#111827;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.status{
+    margin-top:15px;
+    text-align:center;
+    font-weight:bold;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+    <img src="LOGO.png" class="logo">
+
+    <h1 class="titulo">Chamada EBD</h1>
+
+    <label>Aula</label>
+    <select id="aula"></select>
+
+    <label style="margin-top:15px;">Nome do aluno</label>
+    <input 
+        type="text" 
+        id="nome" 
+        placeholder="Digite o nome"
+        autocomplete="off"
+    >
+
+    <ul id="lista"></ul>
+
+    <button onclick="salvar()">
+        Confirmar Presença
+    </button>
+
+    <div class="status" id="status"></div>
+
+</div>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbwyC1Zlbu1-vUQcVYbh9CoB4kEJqAN0lzMcudFBprlSmXsFFOfHRvWDu9GQlnIKhbut0g/exec";
+
+const inputNome = document.getElementById("nome");
+const lista = document.getElementById("lista");
+const selectAula = document.getElementById("aula");
+const status = document.getElementById("status");
+
+
+// ===============================
+// CARREGAR AULAS
+// ===============================
+
+async function carregarAulas(){
+
+    try{
+
+        const req = await fetch(
+            `${API}?acao=aulas`
+        );
+
+        const aulas = await req.json();
+
+        selectAula.innerHTML = "";
+
+        aulas.forEach(aula => {
+
+            const option = document.createElement("option");
+
+            option.value = aula.nome;
+            option.innerText = aula.nome;
+
+            selectAula.appendChild(option);
+
+        });
+
+    }catch(err){
+
+        console.error(err);
+
+        status.innerText = "Erro ao carregar aulas";
+
+    }
+
+}
+
+carregarAulas();
+
+
+// ===============================
+// AUTOCOMPLETE MEMBROS
+// ===============================
+
+inputNome.addEventListener("input", async () => {
+
+    const nome = inputNome.value.trim();
+
+    if(nome.length < 2){
+
+        lista.innerHTML = "";
+        return;
+
+    }
+
+    try{
+
+        const req = await fetch(
+            `${API}?acao=buscar&nome=${encodeURIComponent(nome)}`
+        );
+
+        const dados = await req.json();
+
+        lista.innerHTML = "";
+
+        dados.forEach(nomeEncontrado => {
+
+            const li = document.createElement("li");
+
+            li.innerText = nomeEncontrado;
+
+            li.onclick = () => {
+
+                inputNome.value = nomeEncontrado;
+                lista.innerHTML = "";
+
+            };
+
+            lista.appendChild(li);
+
+        });
+
+    }catch(err){
+
+        console.error(err);
+
+    }
+
+});
+
+
+// ===============================
+// SALVAR PRESENÇA
+// ===============================
+
+async function salvar(){
+
+    const nome = inputNome.value.trim();
+    const aula = selectAula.value;
+
+    if(!nome){
+
+        alert("Digite um nome");
+        return;
+
+    }
+
+    if(!aula){
+
+        alert("Selecione uma aula");
+        return;
+
+    }
+
+    try{
+
+        status.innerText = "Salvando presença...";
+
+        const req = await fetch(API, {
+
+            method:"POST",
+
+            body:JSON.stringify({
+                nome:nome,
+                aula:aula
+            })
+
+        });
+
+        const res = await req.json();
+
+        if(res.sucesso){
+
+            status.innerText = "Presença registrada com sucesso";
+
+            inputNome.value = "";
+            lista.innerHTML = "";
+
+        }else{
+
+            status.innerText = "Erro ao salvar";
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        status.innerText = "Erro na conexão";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
