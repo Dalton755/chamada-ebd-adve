@@ -304,20 +304,30 @@ inputNome.addEventListener("input", async () => {
 
 });
 
+    function limparValidacao(){
+
+    validacao.style.display = "none";
+
+    validacao.innerText = "";
+
+    validacao.className = "";
+
+    botao.disabled = false;
+
+}
+    
 async function validarAluno(){
 
     const nome = inputNome.value.trim();
     const aula = selectAula.value;
 
-    if(nome.length < 2){
+   if(nome.length < 2){
 
-        validacao.style.display = "none";
+    limparValidacao();
 
-        botao.disabled = false;
+    return;
 
-        return;
-
-    }
+}
 
     const req = await fetch(
 
@@ -408,13 +418,7 @@ async function salvar(){
 
             inputNome.value = "";
             lista.innerHTML = "";
-            validacao.style.display = "none";
-
-validacao.innerText = "";
-
-validacao.className = "";
-
-botao.disabled = false;
+            limparValidacao();
 
         }else{
 
