@@ -185,6 +185,7 @@ const selectAula = document.getElementById("aula");
 const status = document.getElementById("status");
 const validacao = document.getElementById("validacao");
 const botao = document.querySelector("button");    
+let timeoutValidacao;    
 
 
 // ===============================
@@ -241,11 +242,18 @@ selectAula.addEventListener("change", () => {
 
 inputNome.addEventListener("input", async () => {
 
+    clearTimeout(timeoutValidacao);
+
     const nome = inputNome.value.trim();
 
     if(nome.length < 2){
 
         lista.innerHTML = "";
+
+        validacao.style.display = "none";
+
+        botao.disabled = false;
+
         return;
 
     }
@@ -268,13 +276,15 @@ inputNome.addEventListener("input", async () => {
 
             li.onclick = async () => {
 
-    inputNome.value = nomeEncontrado;
+                inputNome.value = nomeEncontrado;
 
-    lista.innerHTML = "";
+                lista.innerHTML = "";
 
-    await validarAluno();
+                clearTimeout(timeoutValidacao);
 
-};
+                await validarAluno();
+
+            };
 
             lista.appendChild(li);
 
@@ -285,11 +295,13 @@ inputNome.addEventListener("input", async () => {
         console.error(err);
 
     }
-setTimeout(() => {
 
-    validarAluno();
+    timeoutValidacao = setTimeout(() => {
 
-}, 300);
+        validarAluno();
+
+    }, 400);
+
 });
 
 async function validarAluno(){
