@@ -110,6 +110,38 @@ button:hover{
     font-weight:bold;
 }
 
+    #validacao{
+
+    margin-top:10px;
+    font-weight:bold;
+    text-align:center;
+    padding:10px;
+    border-radius:10px;
+    display:none;
+
+}
+
+.valido{
+
+    background:#dcfce7;
+    color:#166534;
+
+}
+
+.invalido{
+
+    background:#fee2e2;
+    color:#991b1b;
+
+}
+
+button:disabled{
+
+    opacity:.5;
+    cursor:not-allowed;
+
+}
+
 </style>
 </head>
 <body>
@@ -130,6 +162,8 @@ button:hover{
         placeholder="Digite o nome"
         autocomplete="off"
     >
+    
+    <div id="validacao"></div>
 
     <ul id="lista"></ul>
 
@@ -143,12 +177,14 @@ button:hover{
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbzJkUXu4bm-r0vRUX3v2ag8kDCm6KSMr2-r7teB4W6BImaSSNgPOQ6pYqWpDUU7Qlst-g/exec";
+const API = "https://script.google.com/macros/s/AKfycbwyfeaSFNLwp7lLfnTvIiZZXUf3VHdMn5B9jhE9MvL-3FkwrV15KmqRKrV7rO0I4-_hiw/exec";
 
 const inputNome = document.getElementById("nome");
 const lista = document.getElementById("lista");
 const selectAula = document.getElementById("aula");
 const status = document.getElementById("status");
+const validacao = document.getElementById("validacao");
+const botao = document.querySelector("button");    
 
 
 // ===============================
@@ -189,6 +225,14 @@ async function carregarAulas(){
 }
 
 carregarAulas();
+
+selectAula.addEventListener("change", () => {
+
+    validarAluno();
+
+    atualizarContador();
+
+});    
 
 
 // ===============================
@@ -238,9 +282,58 @@ inputNome.addEventListener("input", async () => {
         console.error(err);
 
     }
-
+validarAluno();
 });
 
+async function validarAluno(){
+
+    const nome = inputNome.value.trim();
+    const aula = selectAula.value;
+
+    if(nome.length < 2){
+
+        validacao.style.display = "none";
+
+        botao.disabled = false;
+
+        return;
+
+    }
+
+    const req = await fetch(
+
+        `${API}?acao=validar&nome=${encodeURIComponent(nome)}&aula=${encodeURIComponent(aula)}`
+
+    );
+
+    const dados = await req.json();
+
+    if(dados.duplicado){
+
+        validacao.style.display = "block";
+
+        validacao.className = "invalido";
+
+        validacao.innerText =
+            "Aluno já possui presença hoje";
+
+        botao.disabled = true;
+
+    }else{
+
+        validacao.style.display = "block";
+
+        validacao.className = "valido";
+
+        validacao.innerText =
+            "Aluno elegível para chamada";
+
+        botao.disabled = false;
+
+    }
+
+}
+    
 
 // ===============================
 // SALVAR PRESENÇA
