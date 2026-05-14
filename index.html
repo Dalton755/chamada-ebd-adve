@@ -177,7 +177,7 @@ button:disabled{
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbwyfeaSFNLwp7lLfnTvIiZZXUf3VHdMn5B9jhE9MvL-3FkwrV15KmqRKrV7rO0I4-_hiw/exec";
+const API = "https://script.google.com/macros/s/AKfycbzZMVBxSVpORTJxWxa93m2pzNHTNiMRsQu1Zz0hGL9Npz0ivDuqY2MU9D52sFbIqhQhsQ/exec";
 
 const inputNome = document.getElementById("nome");
 const lista = document.getElementById("lista");
@@ -266,12 +266,15 @@ inputNome.addEventListener("input", async () => {
 
             li.innerText = nomeEncontrado;
 
-            li.onclick = () => {
+            li.onclick = async () => {
 
-                inputNome.value = nomeEncontrado;
-                lista.innerHTML = "";
+    inputNome.value = nomeEncontrado;
 
-            };
+    lista.innerHTML = "";
+
+    await validarAluno();
+
+};
 
             lista.appendChild(li);
 
@@ -282,7 +285,11 @@ inputNome.addEventListener("input", async () => {
         console.error(err);
 
     }
-validarAluno();
+setTimeout(() => {
+
+    validarAluno();
+
+}, 300);
 });
 
 async function validarAluno(){
@@ -374,6 +381,14 @@ async function salvar(){
         });
 
         const res = await req.json();
+
+        if(!res.sucesso){
+
+            status.innerText = res.mensagem;
+
+            return;
+
+        }
 
         if(res.sucesso){
 
